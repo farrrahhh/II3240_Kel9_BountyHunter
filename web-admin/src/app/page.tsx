@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,7 +9,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-black">Admin Login</h1>
-          <p className="mt-2 text-sm text-gray-600">Sign in to access the admin dashboard</p>
+          <p className="mt-2 text-sm text-gray-600">Sign in to access the admin page</p>
         </div>
 
         <form className="mt-8 space-y-6">
