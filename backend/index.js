@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import pg from "pg";
-import bcrypt from "bcryptjs"
+import bcrypt from "bcryptjs";
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -52,10 +52,6 @@ app.post("/api/disposal", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
-
-
-
 
 // API FOR CHECKING USER
 // Check if user exists
@@ -215,10 +211,9 @@ app.get("/api/disposals/total-weight", async (req, res) => {
 app.post("/api/admin/login", async (req, res) => {
   const { email, password } = req.body;
   try {
-    const result = await pool.query(
-      "SELECT * FROM admin WHERE email = $1",
-      [email]
-    );
+    const result = await pool.query("SELECT * FROM admin WHERE email = $1", [
+      email,
+    ]);
     if (result.rowCount === 0)
       return res.status(401).json({ error: "Invalid credentials" });
 
@@ -244,13 +239,17 @@ app.get("/api/admins", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 app.post("/api/admins", async (req, res) => {
   const { email, password } = req.body;
   try {
+    const hashedPassword = await bcrypt.hash(password, 10); // hash password dengan saltRounds = 10
+
     const result = await pool.query(
       "INSERT INTO admin (email, password) VALUES ($1, $2) RETURNING admin_id, email, created_at",
-      [email, password]
+      [email, hashedPassword]
     );
+
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -260,6 +259,7 @@ app.post("/api/admins", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 app.put("/api/admins/:id/password", async (req, res) => {
   const { id } = req.params;
   const { password } = req.body;
@@ -293,9 +293,6 @@ app.delete("/api/admins/:id", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
-
-
 
 // Root endpoint
 app.get("/", (req, res) => {
