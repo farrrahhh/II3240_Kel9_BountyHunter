@@ -12,12 +12,28 @@ import { DonutChartComponent } from "@/components/donut-chart"
 
 const API_BASE = "https://ii-3240-kel9-bounty-hunter.vercel.app/api"
 
+interface DisposalData {
+  period: string
+  total_bottles: number
+}
+
+interface RewardData {
+  name: string
+  total_redemptions: number
+}
+
+interface DonutChartData {
+  name: string
+  value: number
+  color: string
+}
+
 export default function DashboardPage() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [totalBottles, setTotalBottles] = useState(0)
   const [totalPoints, setTotalPoints] = useState(0)
   const [disposalTrend, setDisposalTrend] = useState<{ date: string; value: number }[]>([])
-  const [rewardUsage, setRewardUsage] = useState<{ name: string; value: number; color: string }[]>([])
+  const [rewardUsage, setRewardUsage] = useState<DonutChartData[]>([])
 
   const [period, setPeriod] = useState("day")
 
@@ -44,24 +60,33 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchChartData = async () => {
       try {
-        const disposalRes = await axios.get(`${API_BASE}/disposal/trend?period=${period}`)
-        const rewardRes = await axios.get(`${API_BASE}/rewards/leaderboard?period=${period}`)
+        const disposalRes = await axios.get<DisposalData[]>(`${API_BASE}/disposal/trend?period=${period}`)
+        const rewardRes = await axios.get<RewardData[]>(`${API_BASE}/rewards/leaderboard?period=${period}`)
 
-        const formattedDisposal = disposalRes.data.map((row: any) => ({
+        const formattedDisposal = disposalRes.data.map((row) => ({
           date: row.period.split("T")[0],
           value: Number(row.total_bottles),
         }))
 
-        const colors = ["#8DD3C7", "#FDB462", "#B3DE69", "#FCCDE5", "#D9D9D9", "#BC80BD", "#FFED6F",
-  "#80B1D3", "#FB8072", "#CCEBC5", "#BEBADA", "#FFB3B3", "#E5D8BD", "#999999",
-  "#A6D854", "#FFD92F", "#E78AC3", "#66C2A5", "#FC8D62", "#1F78B4"
-]
-        const grouped = rewardRes.data.reduce((acc: any, item: any, idx: number) => {
-          const existing = acc.find((x: any) => x.name === item.name)
-          if (existing) existing.value += Number(item.total_redemptions)
-          else acc.push({ name: item.name, value: Number(item.total_redemptions), color: colors[idx % colors.length] })
-          return acc
-        }, [])
+        const colors = [
+          "#8DD3C7", "#FDB462", "#B3DE69", "#FCCDE5", "#D9D9D9", "#BC80BD", "#FFED6F",
+          "#80B1D3", "#FB8072", "#CCEBC5", "#BEBADA", "#FFB3B3", "#E5D8BD", "#999999",
+          "#A6D854", "#FFD92F", "#E78AC3", "#66C2A5", "#FC8D62", "#1F78B4"
+        ]
+
+        const grouped: DonutChartData[] = []
+        rewardRes.data.forEach((item, idx) => {
+          const existing = grouped.find((x) => x.name === item.name)
+          if (existing) {
+            existing.value += Number(item.total_redemptions)
+          } else {
+            grouped.push({
+              name: item.name,
+              value: Number(item.total_redemptions),
+              color: colors[idx % colors.length],
+            })
+          }
+        })
 
         setDisposalTrend(formattedDisposal.reverse())
         setRewardUsage(grouped)
