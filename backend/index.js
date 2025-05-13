@@ -193,11 +193,11 @@ app.get("/api/users/total-points", async (req, res) => {
   }
 });
 
-// get weight of total disposals
-app.get("/api/disposals/total-weight", async (req, res) => {
+// get sum of bottle disposals
+app.get("/api/disposal/total-weight", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT SUM(weight) AS total_weight FROM bottle_disposals"
+      "SELECT SUM(bottle_count) AS total_bottle_count FROM bottle_disposals"
     );
     res.json(result.rows[0]);
   } catch (err) {
