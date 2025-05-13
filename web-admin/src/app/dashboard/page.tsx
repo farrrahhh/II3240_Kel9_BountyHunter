@@ -52,7 +52,10 @@ export default function DashboardPage() {
           value: Number(row.total_bottles),
         }))
 
-        const colors = ["#8DD3C7", "#A6D854", "#FDB462", "#BC80BD", "#80B1D3"]
+        const colors = ["#8DD3C7", "#FDB462", "#B3DE69", "#FCCDE5", "#D9D9D9", "#BC80BD", "#FFED6F",
+  "#80B1D3", "#FB8072", "#CCEBC5", "#BEBADA", "#FFB3B3", "#E5D8BD", "#999999",
+  "#A6D854", "#FFD92F", "#E78AC3", "#66C2A5", "#FC8D62", "#1F78B4"
+]
         const grouped = rewardRes.data.reduce((acc: any, item: any, idx: number) => {
           const existing = acc.find((x: any) => x.name === item.name)
           if (existing) existing.value += Number(item.total_redemptions)
