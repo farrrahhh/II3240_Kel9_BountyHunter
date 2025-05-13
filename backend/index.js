@@ -266,6 +266,11 @@ app.delete("/api/admins/:id", async (req, res) => {
   }
 });
 
+// Root endpoint
+app.get("/", (req, res) => {
+  res.send("API is running");
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`HTTP server listening on port ${PORT}`);
