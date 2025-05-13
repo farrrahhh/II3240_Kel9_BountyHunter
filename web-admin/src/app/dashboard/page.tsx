@@ -16,49 +16,59 @@ export default function DashboardPage() {
   const [totalUsers, setTotalUsers] = useState(0)
   const [totalBottles, setTotalBottles] = useState(0)
   const [totalPoints, setTotalPoints] = useState(0)
+  const [disposalTrend, setDisposalTrend] = useState<{ date: string; value: number }[]>([])
+  const [rewardUsage, setRewardUsage] = useState<{ name: string; value: number; color: string }[]>([])
 
-  // Dummy data (optional, replace with real chart data if available)
-  const bottleData = [
-    { date: "2023-03-19", value: 2.7 },
-    { date: "2023-03-21", value: 4.5 },
-    { date: "2023-03-23", value: 2.8 },
-    { date: "2023-03-25", value: 1.2 },
-    { date: "2023-03-27", value: 4.8 },
-    { date: "2023-03-29", value: 2.7 },
-    { date: "2023-03-31", value: 3.2 },
-  ]
-
-  const rewardData = [
-    { name: "E-Wallet Credit", value: 26.1, color: "#8DD3C7" },
-    { name: "Pulsa", value: 14.8, color: "#A6D854" },
-    { name: "Voucher Makan", value: 34.8, color: "#FDB462" },
-    { name: "Minuman Gratis", value: 8.7, color: "#BC80BD" },
-    { name: "Merchandise", value: 17.4, color: "#80B1D3" },
-  ]
+  const [period, setPeriod] = useState("day")
 
   useEffect(() => {
-  const fetchStats = async () => {
-    try {
-      const [userRes, bottleRes, pointsRes] = await Promise.all([
-        axios.get(`${API_BASE}/users/total`),
-        axios.get(`${API_BASE}/disposal/total-weight`),
-        axios.get(`${API_BASE}/users/total-points`)
-      ])
+    const fetchStats = async () => {
+      try {
+        const [userRes, bottleRes, pointsRes] = await Promise.all([
+          axios.get(`${API_BASE}/users/total`),
+          axios.get(`${API_BASE}/disposal/total-bottles`),
+          axios.get(`${API_BASE}/users/total-points`),
+        ])
 
-      console.log("User API response:", userRes.data)         // 👈 debug log
-      console.log("Bottle API response:", bottleRes.data)
-      console.log("Points API response:", pointsRes.data)
-
-      setTotalUsers(Number(userRes.data.total_users ?? 0))
-      setTotalBottles(Number(bottleRes.data.total_bottle_count ?? 0))
-      setTotalPoints(Number(pointsRes.data.total_points ?? 0))
-    } catch (err) {
-      console.error("Error fetching stats:", err)
+        setTotalUsers(Number(userRes.data.total_users ?? 0))
+        setTotalBottles(Number(bottleRes.data.total_bottle_count ?? 0))
+        setTotalPoints(Number(pointsRes.data.total_points ?? 0))
+      } catch (err) {
+        console.error("Error fetching stats:", err)
+      }
     }
-  }
 
-  fetchStats()
-}, [])
+    fetchStats()
+  }, [])
+
+  useEffect(() => {
+    const fetchChartData = async () => {
+      try {
+        const disposalRes = await axios.get(`${API_BASE}/disposal/trend?period=${period}`)
+        const rewardRes = await axios.get(`${API_BASE}/rewards/leaderboard?period=${period}`)
+
+        const formattedDisposal = disposalRes.data.map((row: any) => ({
+          date: row.period.split("T")[0],
+          value: Number(row.total_bottles),
+        }))
+
+        const colors = ["#8DD3C7", "#A6D854", "#FDB462", "#BC80BD", "#80B1D3"]
+        const grouped = rewardRes.data.reduce((acc: any, item: any, idx: number) => {
+          const existing = acc.find((x: any) => x.name === item.name)
+          if (existing) existing.value += Number(item.total_redemptions)
+          else acc.push({ name: item.name, value: Number(item.total_redemptions), color: colors[idx % colors.length] })
+          return acc
+        }, [])
+
+        setDisposalTrend(formattedDisposal.reverse())
+        setRewardUsage(grouped)
+      } catch (err) {
+        console.error("Error fetching chart data:", err)
+      }
+    }
+
+    fetchChartData()
+  }, [period])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -68,21 +78,19 @@ export default function DashboardPage() {
         <Navbar title="Dashboard" />
 
         <main className="p-6">
-          {/* Stats Row */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <StatCard value={totalUsers.toString()} label="Users" />
             <StatCard value={totalBottles.toString()} label="Bottles" />
             <StatCard value={totalPoints.toString()} label="Points" />
           </div>
 
-          {/* Charts Row */}
           <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <ChartCard title="Plastic Bottle Disposal Trend">
-              <LineChartComponent data={bottleData} />
+            <ChartCard title="Plastic Bottle Disposal Trend" defaultFilter={period} onFilterChange={setPeriod}>
+              <LineChartComponent data={disposalTrend} />
             </ChartCard>
 
-            <ChartCard title="Reward Usage Statistics">
-              <DonutChartComponent data={rewardData} />
+            <ChartCard title="Reward Usage Statistics" defaultFilter={period} onFilterChange={setPeriod}>
+              <DonutChartComponent data={rewardUsage} />
             </ChartCard>
           </div>
         </main>

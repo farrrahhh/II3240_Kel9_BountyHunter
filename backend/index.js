@@ -137,6 +137,34 @@ app.delete("/api/rewards/:id", async (req, res) => {
   }
 });
 
+// API DISPOSAL TREND ACCORDING TO TIME
+app.get("/api/disposal/trend", async (req, res) => {
+  const { period } = req.query;
+
+  // validasi periode
+  const allowedPeriods = ["day", "month", "year"];
+  const groupBy = allowedPeriods.includes(period) ? period : "day";
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT 
+        DATE_TRUNC($1, created_at) AS period,
+        SUM(bottle_count) AS total_bottles
+      FROM bottle_disposals
+      GROUP BY period
+      ORDER BY period DESC
+    `,
+      [groupBy]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.get("/api/rewards/leaderboard", async (req, res) => {
   const { period } = req.query;
 
@@ -194,7 +222,7 @@ app.get("/api/users/total-points", async (req, res) => {
 });
 
 // get sum of bottle disposals
-app.get("/api/disposal/total-weight", async (req, res) => {
+app.get("/api/disposal/total-bottles", async (req, res) => {
   try {
     const result = await pool.query(
       "SELECT SUM(bottle_count) AS total_bottle_count FROM bottle_disposals"
