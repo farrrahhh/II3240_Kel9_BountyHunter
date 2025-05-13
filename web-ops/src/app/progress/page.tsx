@@ -21,15 +21,23 @@ export default function Progress() {
   }, [email, router])
 
   useEffect(() => {
-    const mqttClient = mqtt.connect("wss://broker.hivemq.com:8884")
+    const mqttClient = mqtt.connect("ws://broker.hivemq.com:8000/mqtt")
 
     mqttClient.on("connect", () => {
-      mqttClient.subscribe("bountyhunter/scale")
+      console.log("MQTT connected")
+      mqttClient.subscribe("bountyhunter/scale", (err) => {
+        if (err) {
+          console.error("Subscribe error:", err)
+        } else {
+          console.log("Subscribed to bountyhunter/scale")
+        }
+      })
     })
-
+    
     mqttClient.on("message", (topic: string, message) => {
+      const value = parseFloat(message.toString())
+      console.log("Received MQTT message:", value)
       if (!isStopped) {
-        const value = parseFloat(message.toString())
         setWeight(value)
       }
     })
