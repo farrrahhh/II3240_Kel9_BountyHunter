@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import { Trash2, Pencil, Plus } from "lucide-react"
 
-const baseURL = "http://localhost:3001"
+const baseURL = "https://ii-3240-kel9-bounty-hunter.vercel.app"
 
 interface Admin {
   admin_id: number

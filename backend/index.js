@@ -53,6 +53,12 @@ app.post("/api/disposal", async (req, res) => {
   }
 });
 
+
+
+
+
+// API FOR CHECKING USER
+// Check if user exists
 app.get("/api/check-user", async (req, res) => {
   const { email } = req.query;
   try {
@@ -205,6 +211,28 @@ app.get("/api/disposals/total-weight", async (req, res) => {
 });
 
 // CRUD admin
+// login admin
+app.post("/api/admin/login", async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const result = await pool.query(
+      "SELECT * FROM admin WHERE email = $1",
+      [email]
+    );
+    if (result.rowCount === 0)
+      return res.status(401).json({ error: "Invalid credentials" });
+
+    const admin = result.rows[0];
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
+
+    res.json({ message: "Login successful", admin });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.get("/api/admins", async (req, res) => {
   try {
     const result = await pool.query(
@@ -265,6 +293,9 @@ app.delete("/api/admins/:id", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+
+
 
 // Root endpoint
 app.get("/", (req, res) => {
