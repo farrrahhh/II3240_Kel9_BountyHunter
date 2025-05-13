@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import axios from "axios"
+import axios, { AxiosError } from "axios"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,21 +13,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
+
     try {
       const res = await axios.post("https://ii-3240-kel9-bounty-hunter.vercel.app/api/admin/login", {
         email,
         password,
       })
+
       if (res.status === 200) {
         // optionally save session or token
         router.push("/dashboard")
       }
-    } catch (err: any) {
-      if (err.response && err.response.data?.error) {
-        setError(err.response.data.error)
+    } catch (err: unknown) {
+      const axiosError = err as AxiosError<{ error: string }>
+      if (axiosError.response?.data?.error) {
+        setError(axiosError.response.data.error)
       } else {
         setError("Login failed. Try again.")
       }
