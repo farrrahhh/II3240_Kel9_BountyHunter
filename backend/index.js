@@ -55,7 +55,7 @@ app.post("/api/disposal", async (req, res) => {
 
 // API FOR CHECKING USER
 // Check if user exists
-app.get("/api/check-user", async (req, res) => {
+app.get("/api/checkuser", async (req, res) => {
   const { email } = req.query;
   try {
     const user = await pool.query(

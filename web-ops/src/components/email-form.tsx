@@ -15,7 +15,7 @@ export default function EmailForm() {
     if (!email) return
 
     try {
-      const res = await axios.get("http://localhost:3001/api/check-user", {
+      const res = await axios.get("https://find-it-bersama-dia-safe-wheel.vercel.app/api/check-user", {
         params: { email },
       })
       if ((res.data as { exists: boolean }).exists) {
