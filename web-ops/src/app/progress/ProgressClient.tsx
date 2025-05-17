@@ -6,7 +6,7 @@ import axios from "axios"
 import Image from "next/image"
 import mqtt from "mqtt"
 
-const API_BASE = "http://localhost:3001/api"
+const API_BASE = "https://ii-3240-kel9-bounty-hunter-git-main-farahs-projects-d8079cf5.vercel.app/api"
 
 export default function ProgressClient() {
   const router = useRouter()

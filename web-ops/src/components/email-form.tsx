@@ -15,9 +15,7 @@ export default function EmailForm() {
     if (!email) return
 
     try {
-    
-
-      const res = await axios.post("http://localhost:3001/api/checkuser", {
+      const res = await axios.post("https://ii-3240-kel9-bounty-hunter-git-main-farahs-projects-d8079cf5.vercel.app/api/checkuser", {
         email,
       })
 
