@@ -15,7 +15,7 @@ export default function EmailForm() {
     if (!email) return
 
     try {
-      const res = await axios.post("https://find-it-bersama-dia-safe-wheel.vercel.app/api/checkuser", {
+      const res = await axios.post("https://find-it-bersama-dia-safe-wheel.vercel.app/api/check-user", {
         email,
       })
 
