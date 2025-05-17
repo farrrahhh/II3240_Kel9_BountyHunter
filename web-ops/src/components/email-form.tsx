@@ -15,9 +15,10 @@ export default function EmailForm() {
     if (!email) return
 
     try {
-      const res = await axios.get("https://find-it-bersama-dia-safe-wheel.vercel.app/api/checkuser", {
-        params: { email },
+      const res = await axios.post("https://find-it-bersama-dia-safe-wheel.vercel.app/api/checkuser", {
+        email,
       })
+
       if ((res.data as { exists: boolean }).exists) {
         router.push(`/progress?email=${encodeURIComponent(email)}`)
       } else {

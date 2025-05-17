@@ -53,6 +53,28 @@ app.post("/api/disposal", async (req, res) => {
   }
 });
 
+app.post("/api/checkuser", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) return res.status(400).json({ error: "Email tidak diberikan" });
+
+  try {
+    const result = await pool.query(
+      "SELECT user_id FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ exists: false, message: "User tidak ditemukan" });
+    }
+
+    return res.status(200).json({ exists: true, user_id: result.rows[0].user_id });
+  } catch (err) {
+    console.error("Error saat mengecek user:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // API FOR CHECKING USER
 // Check if user exists
 app.get("/api/checkuser", async (req, res) => {
