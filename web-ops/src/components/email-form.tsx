@@ -15,11 +15,15 @@ export default function EmailForm() {
     if (!email) return
 
     try {
+    
+
       const res = await axios.post("http://localhost:3001/api/checkuser", {
         email,
       })
 
       if ((res.data as { exists: boolean }).exists) {
+        // save into local storage
+        localStorage.setItem("email", email)
         router.push(`/progress?email=${encodeURIComponent(email)}`)
       } else {
         setError("Email not found. Please register first.")
