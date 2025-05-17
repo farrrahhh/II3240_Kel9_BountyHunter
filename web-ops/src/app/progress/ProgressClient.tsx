@@ -11,7 +11,7 @@ export default function ProgressClient() {
   const searchParams = useSearchParams()
   const email = searchParams.get("email")
 
-  const [weight, setWeight] = useState(0)
+  const [bottleCount, setBottleCount] = useState(0)
   const [isStopped, setIsStopped] = useState(false)
 
   useEffect(() => {
@@ -22,6 +22,7 @@ export default function ProgressClient() {
 
   useEffect(() => {
     const mqttClient = mqtt.connect("ws://broker.hivemq.com:8000/mqtt")
+    console.log("Email from search params:", email)
 
     mqttClient.on("connect", () => {
       console.log("MQTT connected")
@@ -34,11 +35,11 @@ export default function ProgressClient() {
       })
     })
 
-    mqttClient.on("message", (topic: string, message) => {
-      const value = parseFloat(message.toString())
-      console.log("Received MQTT message:", value)
-      if (!isStopped) {
-        setWeight(value)
+    mqttClient.on("message", (_topic, message) => {
+      const value = parseInt(message.toString())
+      if (!isNaN(value) && !isStopped) {
+        console.log("Received bottle count:", value)
+        setBottleCount(value)
       }
     })
 
@@ -51,15 +52,16 @@ export default function ProgressClient() {
     setIsStopped(true)
 
     try {
-      await axios.post("/api/disposal", {
+      const res = await axios.post("https://ii-3240-kel9-bounty-hunter.vercel.app/api/disposal", {
         email,
-        weight,
+        bottle_count: bottleCount,
         trashbin_id: 1,
       })
+      console.log("Disposal response:", res.data)
       alert("Data saved successfully!")
       router.push("/success")
     } catch (err) {
-      console.error(err)
+      console.error("Failed to save data:", err)
       alert("Failed to save data.")
     }
   }
@@ -75,7 +77,9 @@ export default function ProgressClient() {
       />
 
       <div className="z-10 flex flex-col items-center justify-center px-4 text-center">
-        <h1 className="text-6xl font-bold mb-4">{weight.toFixed(4)} gram</h1>
+        <h1 className="text-6xl font-bold mb-4">
+          {bottleCount} {bottleCount === 1 ? "bottle" : "bottles"}
+        </h1>
         <p className="text-xl text-[#a4d273] mb-10">Keep It Up! Small Act, Big Impact.</p>
 
         <button

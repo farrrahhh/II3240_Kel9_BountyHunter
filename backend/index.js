@@ -20,39 +20,49 @@ const pool = new pg.Pool({
 });
 
 app.post("/api/disposal", async (req, res) => {
-  const { email, weight, trashbin_id } = req.body;
+  const { email, bottle_count, trashbin_id } = req.body;
 
-  if (!weight) return res.status(400).json({ error: "No weight provided" });
+  // Validasi input
+  if (!email || !trashbin_id || bottle_count === undefined || isNaN(bottle_count)) {
+    return res.status(400).json({ error: "Invalid request body" });
+  }
+
+  const count = parseInt(bottle_count);
+  const trashbinId = parseInt(trashbin_id);
+  const points = count * 10;
 
   try {
+    // Cek apakah user ada
     const user = await pool.query(
       "SELECT user_id FROM users WHERE email = $1",
       [email]
     );
-    if (user.rowCount === 0)
+
+    if (user.rowCount === 0) {
       return res.status(404).json({ error: "User not found" });
+    }
 
     const userId = user.rows[0].user_id;
-    const points = Math.floor(weight * 10);
 
+    // Simpan disposal
     await pool.query(
-      `INSERT INTO bottle_disposals (user_id, trashbin_id, weight, points_earned)
+      `INSERT INTO bottle_disposals (user_id, trashbin_id, bottle_count, points_earned)
        VALUES ($1, $2, $3, $4)`,
-      [userId, trashbin_id, weight, points]
+      [userId, trashbinId, count, points]
     );
 
+    // Update poin user
     await pool.query(
       `UPDATE users SET points = points + $1 WHERE user_id = $2`,
       [points, userId]
     );
 
-    res.json({ message: "Disposal saved", weight, points });
+    res.json({ message: "Disposal saved", bottle_count: count, points });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
-
 app.post("/api/checkuser", async (req, res) => {
   const { email } = req.body;
 
@@ -72,23 +82,6 @@ app.post("/api/checkuser", async (req, res) => {
   } catch (err) {
     console.error("Error saat mengecek user:", err);
     return res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// API FOR CHECKING USER
-// Check if user exists
-app.get("/api/checkuser", async (req, res) => {
-  const { email } = req.query;
-  try {
-    const user = await pool.query(
-      "SELECT user_id FROM users WHERE email = $1",
-      [email]
-    );
-    if (user.rowCount === 0) return res.status(404).json({ exists: false });
-    return res.json({ exists: true });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Server error" });
   }
 });
 
