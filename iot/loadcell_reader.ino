@@ -1,94 +1,34 @@
-#include <WiFi.h>
-#include <PubSubClient.h>
+const int IR_SENSOR_PIN = 15;  // Sensor IR di pin D15
 
-// WiFi Config
-const char* ssid = "esp32";
-const char* password = "bersamadia";
-
-// MQTT Broker (HiveMQ public)
-const char* mqtt_server = "broker.hivemq.com";
-const int mqtt_port = 1883;
-const char* mqtt_topic = "bountyhunter/scale";  
-
-WiFiClient espClient;
-PubSubClient client(espClient);
-
-// IR Sensor & LED config
-const int IR_SENSOR_PIN = 15; 
-const int LED_PIN = 4;
-
-volatile int bottleCount = 0;
+int bottleCount = 0;
 bool lastState = HIGH;
-
-unsigned long lastSendTime = 0;
-const unsigned long sendInterval = 2000;  
-
-void IRAM_ATTR countBottle() {
-  int currentState = digitalRead(IR_SENSOR_PIN);
-  if (lastState == HIGH && currentState == LOW) {
-    bottleCount++;
-    Serial.print("Botol terdeteksi! Total: ");
-    Serial.println(bottleCount);
-
-    // Nyalakan LED selama 200ms
-    digitalWrite(LED_PIN, HIGH);
-    delay(200);  // NOT recommended inside ISR but shown for clarity (see note below)
-    digitalWrite(LED_PIN, LOW);
-  }
-  lastState = currentState;
-}
-
-void setup_wifi() {
-  Serial.print("Menyambungkan ke WiFi");
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nWiFi tersambung");
-}
-
-void reconnect() {
-  while (!client.connected()) {
-    Serial.print("Menyambungkan ke MQTT...");
-    if (client.connect("ESP32Client")) {
-      Serial.println("Terhubung ke MQTT");
-    } else {
-      Serial.print("Gagal, rc=");
-      Serial.print(client.state());
-      delay(2000);
-    }
-  }
-}
 
 void setup() {
   Serial.begin(115200);
-  setup_wifi();
-  client.setServer(mqtt_server, mqtt_port);
-
   pinMode(IR_SENSOR_PIN, INPUT_PULLUP);
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
-
-  attachInterrupt(digitalPinToInterrupt(IR_SENSOR_PIN), countBottle, CHANGE);
-
-  Serial.println("Sensor IR & LED diinisialisasi.");
+  Serial.println("IR sensor ready. Waiting for bottles...");
 }
 
 void loop() {
-  if (!client.connected()) {
-    reconnect();
+  // Cek perintah dari komputer (reset)
+  if (Serial.available()) {
+    String cmd = Serial.readStringUntil('\n');
+    cmd.trim();
+    if (cmd == "RESET") {
+      bottleCount = 0;
+      Serial.println("Bottle count reset.");
+    }
   }
-  client.loop();
 
-  if (millis() - lastSendTime > sendInterval) {
-    lastSendTime = millis();
+  // Deteksi transisi HIGH → LOW
+  bool currentState = digitalRead(IR_SENSOR_PIN);
 
-    char payload[16];
-    itoa(bottleCount, payload, 10);
-    client.publish(mqtt_topic, payload);
-
-    Serial.print("MQTT Publish: ");
-    Serial.println(payload);
+  if (lastState == HIGH && currentState == LOW) {
+    bottleCount++;
+    Serial.print("Total botol terdeteksi: ");
+    Serial.println(bottleCount);
+    delay(250); // debounce sederhana
   }
+
+  lastState = currentState;
 }

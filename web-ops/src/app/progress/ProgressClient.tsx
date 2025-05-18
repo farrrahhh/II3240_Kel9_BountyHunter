@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import axios from "axios"
 import Image from "next/image"
@@ -10,65 +10,71 @@ const API_BASE = "https://ii-3240-kel9-bounty-hunter-git-main-farahs-projects-d8
 
 export default function ProgressClient() {
   const router = useRouter()
-  // get email from local storage
-  const email = localStorage.getItem("email")
+  const email = typeof window !== "undefined" ? localStorage.getItem("email") : null
 
   const [bottleCount, setBottleCount] = useState(0)
   const [isStopped, setIsStopped] = useState(false)
+  const mqttClientRef = useRef<any>(null)
 
-  // Cek jika tidak ada email di URL, kembali ke halaman utama
   useEffect(() => {
-    if (!email) {
-      router.push("/")
-    }
+    if (!email) router.push("/")
   }, [email, router])
 
-  // Setup MQTT dan terima data
   useEffect(() => {
-    const mqttClient = mqtt.connect("ws://broker.hivemq.com:8000/mqtt")
-    console.log("Email from search params:", email)
+    const clientId = "web_" + Math.random().toString(16).slice(2, 10)
+    const mqttClient = mqtt.connect("ws://localhost:9001", {
+      clientId,
+      reconnectPeriod: 1000,
+    })
+
+    mqttClientRef.current = mqttClient
 
     mqttClient.on("connect", () => {
-      console.log("MQTT connected")
+      console.log("✅ MQTT connected")
       mqttClient.subscribe("bountyhunter/scale", (err) => {
-        if (err) console.error("Subscribe error:", err)
-        else console.log("Subscribed to bountyhunter/scale")
+        if (err) console.error("❌ Subscribe error:", err)
+        else console.log("📡 Subscribed to bountyhunter/scale")
       })
     })
 
     mqttClient.on("message", (_topic, message) => {
       const value = parseInt(message.toString())
       if (!isNaN(value) && !isStopped) {
-        console.log("Received bottle count:", value)
+        console.log("✅ Parsed bottle count:", value)
         setBottleCount(value)
       }
+    })
+
+    mqttClient.on("error", (err) => {
+      console.error("💥 MQTT Error:", err)
     })
 
     return () => {
       mqttClient.end()
     }
-  }, [email, isStopped])
+  }, [isStopped])
 
-  // Handle ketika user menekan tombol stop
   const handleStop = async () => {
     setIsStopped(true)
 
     try {
-      const res = await axios.post(`${API_BASE}/disposal`, {
+      await axios.post(`${API_BASE}/disposal`, {
         email,
         bottle_count: bottleCount,
         trashbin_id: 6,
       })
 
-      console.log("Disposal response:", res.data)
+      // Kirim perintah reset via MQTT
+      const mqttClient = mqttClientRef.current
+      if (mqttClient && mqttClient.connected) {
+        mqttClient.publish("bountyhunter/reset", "reset")
+        console.log("🔁 Reset sent to ESP32")
+      }
+
       alert("Data saved successfully!")
-      // Redirect to the main page
       router.push("/")
-      // set bottleCount(0)
-
-
     } catch (err) {
-      console.error("Failed to save data:", err)
+      console.error("❌ Failed to save data:", err)
       alert("Failed to save data.")
     }
   }
@@ -82,7 +88,6 @@ export default function ProgressClient() {
         fill
         priority
       />
-
       <div className="z-10 flex flex-col items-center justify-center px-4 text-center">
         <h1 className="text-6xl font-bold mb-4">
           {bottleCount} {bottleCount === 1 ? "bottle" : "bottles"}
