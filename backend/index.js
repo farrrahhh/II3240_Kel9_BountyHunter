@@ -303,6 +303,227 @@ app.post("/api/admins", async (req, res) => {
   }
 });
 
+
+// LOGIN user
+app.post("/api/users/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  // Validasi input
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email dan password wajib diisi" });
+  }
+
+  try {
+    // Cek apakah user ada
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(401).json({ error: "Email tidak ditemukan" });
+    }
+
+    const user = result.rows[0];
+
+    // Bandingkan password (asumsi password di DB sudah dalam bentuk hash)
+    const isMatch = password === user.password;
+    
+    if (!isMatch) {
+      return res.status(401).json({ error: "Password salah" });
+    }
+
+    // Buat response tanpa password
+    const { password: _, ...userData } = user;
+
+    res.status(200).json({
+      message: "Login berhasil",
+      user: userData,
+    });
+  } catch (err) {
+    console.error("Login user error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+//register user
+app.post("/api/users/register", async (req, res) => {
+  const { email, password } = req.body;
+
+  // Validasi input
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email dan password wajib diisi" });
+  }
+
+  try {
+    // Cek apakah email sudah digunakan
+    const existing = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    if (existing.rowCount > 0) {
+      return res.status(400).json({ error: "Email sudah terdaftar" });
+    }
+
+    // Simpan user baru (tanpa bcrypt, password langsung)
+    const result = await pool.query(
+      `INSERT INTO users (email, password, points, created_at)
+       VALUES ($1, $2, 0, NOW())
+       RETURNING user_id, email, points, created_at`,
+      [email, password]
+    );
+
+    const newUser = result.rows[0];
+    res.status(201).json({ message: "Registrasi berhasil", user: newUser });
+  } catch (err) {
+    console.error("Error saat register user:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// disposal history
+app.get("/api/users/:userId/disposals", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT disposal_id, trashbin_id, points_earned, bottle_count, created_at 
+       FROM bottle_disposals 
+       WHERE user_id = $1 
+       ORDER BY created_at DESC`,
+      [userId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching disposal history:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.post("/api/rewards/redeem", async (req, res) => {
+  const { user_id, reward_id } = req.body;
+
+  if (!user_id || !reward_id) {
+    return res.status(400).json({ error: "user_id dan reward_id wajib diisi" });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Ambil data reward dan user, kunci dengan FOR UPDATE
+    const rewardResult = await client.query(
+      "SELECT * FROM rewards WHERE reward_id = $1 FOR UPDATE",
+      [reward_id]
+    );
+
+    const userResult = await client.query(
+      "SELECT * FROM users WHERE user_id = $1 FOR UPDATE",
+      [user_id]
+    );
+
+    if (rewardResult.rowCount === 0 || userResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "User atau reward tidak ditemukan" });
+    }
+
+    const reward = rewardResult.rows[0];
+    const user = userResult.rows[0];
+
+    // Validasi stok dan poin
+    if (reward.stock <= 0) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ error: "Stok reward habis" });
+    }
+
+    if (user.points < reward.point_cost) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ error: "Poin tidak cukup" });
+    }
+
+    // Insert ke tabel redemptions
+    await client.query(
+      `INSERT INTO redemptions (user_id, reward_id, created_at)
+       VALUES ($1, $2, NOW())`,
+      [user_id, reward_id]
+    );
+
+    // Update poin user
+    await client.query(
+      "UPDATE users SET points = points - $1 WHERE user_id = $2",
+      [reward.point_cost, user_id]
+    );
+
+    // Update stok reward
+    await client.query(
+      "UPDATE rewards SET stock = stock - 1 WHERE reward_id = $1",
+      [reward_id]
+    );
+
+    // Ambil poin terbaru
+    const updatedUser = await client.query(
+      "SELECT points FROM users WHERE user_id = $1",
+      [user_id]
+    );
+
+    await client.query("COMMIT");
+
+    res.status(200).json({
+      message: "Reward berhasil ditukar",
+      new_points: updatedUser.rows[0].points,
+    });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Error redeeming reward:", err);
+    res.status(500).json({ error: "Terjadi kesalahan server" });
+  } finally {
+    client.release();
+  }
+});
+
+app.get("/api/users/:id/points", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      "SELECT points FROM users WHERE user_id = $1",
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "User tidak ditemukan" });
+    }
+
+    res.status(200).json({ points: result.rows[0].points });
+  } catch (err) {
+    console.error("Error mengambil poin user:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.get("/api/rewards/redemptions/:user_id", async (req, res) => {
+  const { user_id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT 
+        r.name AS reward_name,
+        r.point_cost,
+        rd.created_at
+      FROM redemptions rd
+      JOIN rewards r ON rd.reward_id = r.reward_id
+      WHERE rd.user_id = $1
+      ORDER BY rd.created_at DESC
+      `,
+      [user_id]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching redemption history:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.put("/api/admins/:id/password", async (req, res) => {
   const { id } = req.params;
   const { password } = req.body;
