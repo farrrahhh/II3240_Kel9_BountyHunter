@@ -499,6 +499,31 @@ app.get("/api/users/:id/points", async (req, res) => {
   }
 });
 
+app.post("/api/users/:id/reset-password", async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  if (!newPassword) {
+    return res.status(400).json({ error: "Password baru wajib diisi" });
+  }
+
+  try {
+    // Cek apakah user ada
+    const result = await pool.query("SELECT * FROM users WHERE user_id = $1", [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "User tidak ditemukan" });
+    }
+    
+    // Update password di database
+    await pool.query("UPDATE users SET password = $1 WHERE user_id = $2", [newPassword, id]);
+
+    res.status(200).json({ message: "Password berhasil diperbarui" });
+  } catch (err) {
+    console.error("Error saat reset password:", err);
+    res.status(500).json({ error: "Terjadi kesalahan server" });
+  }
+});
+
 app.get("/api/rewards/redemptions/:user_id", async (req, res) => {
   const { user_id } = req.params;
 
