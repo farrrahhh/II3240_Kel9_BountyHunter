@@ -1,67 +1,68 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Gift, Home, User, Eye, EyeOff, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { Gift, Home, User, Eye, EyeOff, Trash2, Menu, X } from "lucide-react"
 
 const UserPage = () => {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [message, setMessage] = useState("");
-  const [isError, setIsError] = useState(false);
-  const [showMessage, setShowMessage] = useState(false);
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [message, setMessage] = useState("")
+  const [isError, setIsError] = useState(false)
+  const [showMessage, setShowMessage] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    const storedUser = localStorage.getItem("user")
     if (!storedUser) {
-      router.push("/login");
+      router.push("/login")
     } else {
-      setUser(JSON.parse(storedUser));
+      setUser(JSON.parse(storedUser))
     }
-  }, [router]);
+  }, [router])
 
   useEffect(() => {
     if (showMessage) {
-      const timer = setTimeout(() => setShowMessage(false), 3000);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => setShowMessage(false), 3000)
+      return () => clearTimeout(timer)
     }
-  }, [showMessage]);
+  }, [showMessage])
 
   const handleResetPassword = async () => {
-    setShowMessage(false);
-    setMessage("");
-    setIsError(false);
+    setShowMessage(false)
+    setMessage("")
+    setIsError(false)
 
     if (!newPassword || !confirmPassword) {
-      setIsError(true);
-      setMessage("Semua field wajib diisi");
-      setShowMessage(true);
-      return;
+      setIsError(true)
+      setMessage("Semua field wajib diisi")
+      setShowMessage(true)
+      return
     }
 
     if (newPassword.length < 6) {
-      setIsError(true);
-      setMessage("Password minimal 6 karakter");
-      setShowMessage(true);
-      return;
+      setIsError(true)
+      setMessage("Password minimal 6 karakter")
+      setShowMessage(true)
+      return
     }
 
     if (!/[a-zA-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
-      setIsError(true);
-      setMessage("Password harus mengandung huruf dan angka");
-      setShowMessage(true);
-      return;
+      setIsError(true)
+      setMessage("Password harus mengandung huruf dan angka")
+      setShowMessage(true)
+      return
     }
 
     if (newPassword !== confirmPassword) {
-      setIsError(true);
-      setMessage("Password dan konfirmasi tidak sama");
-      setShowMessage(true);
-      return;
+      setIsError(true)
+      setMessage("Password dan konfirmasi tidak sama")
+      setShowMessage(true)
+      return
     }
 
     try {
@@ -69,37 +70,51 @@ const UserPage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newPassword }),
-      });
+      })
 
-      const data = await res.json();
+      const data = await res.json()
       if (!res.ok) {
-        setIsError(true);
-        setMessage(data.error || "Gagal mengganti password");
-        setShowMessage(true);
+        setIsError(true)
+        setMessage(data.error || "Gagal mengganti password")
+        setShowMessage(true)
       } else {
-        setMessage("Password berhasil diperbarui");
-        setShowMessage(true);
+        setMessage("Password berhasil diperbarui")
+        setShowMessage(true)
         setTimeout(() => {
-          router.push("/dashboard");
-        }, 1500); // 1.5 detik delay agar user sempat melihat pesan sukses
+          router.push("/dashboard")
+        }, 1500) // 1.5 detik delay agar user sempat melihat pesan sukses
       }
     } catch (err) {
-      setIsError(true);
-      setMessage("Terjadi kesalahan koneksi");
-      setShowMessage(true);
+      setIsError(true)
+      setMessage("Terjadi kesalahan koneksi")
+      setShowMessage(true)
     }
-  };
+  }
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen)
+  }
 
   return (
     <div className="flex h-screen w-full max-w-[1440px] mx-auto bg-[#221E1E] font-[Inter] text-white">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-[#111111] h-full flex flex-col justify-between">
+      <aside
+        className={`fixed lg:static w-64 bg-[#111111] h-full flex flex-col justify-between z-30 transition-all duration-300 transform ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
         <div>
           <div className="p-6 flex items-center gap-2 border-b border-gray-800">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="28"
               height="28"
+              viewBox="0 0 24 24"
               fill="none"
               stroke="#8BC34A"
               strokeWidth="2"
@@ -111,23 +126,56 @@ const UserPage = () => {
               <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
             </svg>
             <span className="font-bold text-xl">BountyHunter</span>
+            <button className="ml-auto lg:hidden" onClick={toggleSidebar}>
+              <X className="w-6 h-6" />
+            </button>
           </div>
           <nav className="p-6">
             <ul className="space-y-6">
-              <li className="flex items-center gap-3 hover:text-[#8BC34A] cursor-pointer" onClick={() => router.push("/dashboard")}>
-                <Home className="w-5 h-5" /> Home
+              <li>
+                <div
+                  className="flex items-center gap-3 hover:text-[#8BC34A] cursor-pointer transition-colors"
+                  onClick={() => {
+                    router.push("/dashboard")
+                    setSidebarOpen(false)
+                  }}
+                >
+                  <Home className="w-5 h-5" /> Home
+                </div>
               </li>
-              <li className="flex items-center gap-3 hover:text-[#8BC34A] cursor-pointer" onClick={() => router.push("/rewards")}>
-                <Gift className="w-5 h-5" /> Rewards
+              <li>
+                <div
+                  className="flex items-center gap-3 hover:text-[#8BC34A] cursor-pointer transition-colors"
+                  onClick={() => {
+                    router.push("/rewards")
+                    setSidebarOpen(false)
+                  }}
+                >
+                  <Gift className="w-5 h-5" /> Rewards
+                </div>
               </li>
-              <li className="flex items-center gap-3 cursor-pointer hover:text-[#8BC34A] transition-colors" onClick={() => router.push("/disposals_history")}>
-                <Trash2 className="w-5 h-5" /> Riwayat Pembuangan
+              <li>
+                <div
+                  className="flex items-center gap-3 cursor-pointer hover:text-[#8BC34A] transition-colors"
+                  onClick={() => {
+                    router.push("/disposals_history")
+                    setSidebarOpen(false)
+                  }}
+                >
+                  <Trash2 className="w-5 h-5" /> Riwayat Pembuangan
+                </div>
               </li>
             </ul>
           </nav>
         </div>
 
-        <div className="p-6 border-t border-gray-800 cursor-pointer hover:opacity-80" onClick={() => router.push("/users")}>
+        <div
+          className="p-6 border-t border-gray-800 cursor-pointer hover:opacity-80 transition"
+          onClick={() => {
+            router.push("/users")
+            setSidebarOpen(false)
+          }}
+        >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-[#8BC34A] flex items-center justify-center">
               <User className="w-4 h-4 text-black" />
@@ -138,14 +186,23 @@ const UserPage = () => {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 bg-[#1a1a1a] overflow-y-auto">
+      <main className="flex-1 bg-[#1a1a1a] overflow-y-auto w-full">
         <header className="bg-[#8BC34A] p-4 text-white text-xl font-bold flex items-center gap-2">
+          <button className="lg:hidden mr-2" onClick={toggleSidebar}>
+            <Menu className="w-6 h-6" />
+          </button>
           <User className="w-6 h-6" /> Pengaturan Akun
         </header>
 
-        <div className="p-10 pl-16">
+        <div className="p-4 sm:p-6 md:p-10 md:pl-16">
           {showMessage && (
-            <div className={`mb-6 w-full max-w-md py-2 px-4 rounded-md shadow ${isError ? "bg-red-100 text-red-700 border border-red-400" : "bg-green-100 text-green-700 border border-green-400"}`}>
+            <div
+              className={`mb-6 w-full max-w-md py-2 px-4 rounded-md shadow ${
+                isError
+                  ? "bg-red-100 text-red-700 border border-red-400"
+                  : "bg-green-100 text-green-700 border border-green-400"
+              }`}
+            >
               {message}
             </div>
           )}
@@ -153,7 +210,7 @@ const UserPage = () => {
           {/* New Password */}
           <div className="mb-6">
             <label className="block mb-2 text-[#A0C878] font-semibold">Password Baru</label>
-            <div className="relative w-[400px]">
+            <div className="relative w-full max-w-[400px]">
               <input
                 type={showNewPassword ? "text" : "password"}
                 value={newPassword}
@@ -173,7 +230,7 @@ const UserPage = () => {
           {/* Confirm Password */}
           <div className="mb-6">
             <label className="block mb-2 text-[#A0C878] font-semibold">Konfirmasi Password Baru</label>
-            <div className="relative w-[400px]">
+            <div className="relative w-full max-w-[400px]">
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
@@ -192,18 +249,18 @@ const UserPage = () => {
 
           <button
             onClick={handleResetPassword}
-            className="bg-[#8BC34A] hover:bg-[#7ab63e] text-white px-6 py-2 rounded-md font-medium transition-colors w-60"
+            className="bg-[#8BC34A] hover:bg-[#7ab63e] text-white px-6 py-2 rounded-md font-medium transition-colors w-full sm:w-60"
           >
             Simpan Password
           </button>
 
-          <div className="mt-70">
+          <div className="mt-20 sm:mt-70">
             <button
               onClick={() => {
-                localStorage.removeItem("user");
-                router.push("/login");
+                localStorage.removeItem("user")
+                router.push("/login")
               }}
-              className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md font-medium transition-colors w-40"
+              className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md font-medium transition-colors w-full sm:w-40"
             >
               Logout
             </button>
@@ -211,7 +268,7 @@ const UserPage = () => {
         </div>
       </main>
     </div>
-  );
-};
+  )
+}
 
-export default UserPage;
+export default UserPage
