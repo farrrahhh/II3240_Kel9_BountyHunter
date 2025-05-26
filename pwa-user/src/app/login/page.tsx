@@ -3,8 +3,10 @@
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Eye, EyeOff, Leaf } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
 import Image from "next/image"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 
 const Login: React.FC = () => {
   const router = useRouter()
@@ -58,29 +60,29 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#221E1E] font-[Inter] text-black">
-      {/* Header Branding */}
-      <div className="p-6 flex items-center gap-2 text-white">
-        <Leaf className="text-[#8BC34A]" size={28} />
-        <span className="font-bold text-xl">BountyHunter</span>
-      </div>
+    <div className="flex flex-col h-screen w-full bg-[#221E1E] font-[Inter]">
+      <Header />
 
-      <div className="flex flex-col lg:flex-row max-w-[1440px] mx-auto">
-        {/* Left side - Image and quote */}
-        <div className="relative w-full lg:w-1/2 h-[300px] lg:h-[750px] overflow-hidden bg-[#221E1E]">
-          <div className="absolute w-full h-full">
-            <Image src="/picture/image 8.png" alt="Background" layout="fill" objectFit="cover" className="opacity-40" />
-            <div className="absolute bg-black bg-opacity-20"></div>
-          </div>
+      <div className="flex flex-1 flex-col lg:flex-row overflow-hidden">
+        {/* Left side - Full height image */}
+        <div className="relative w-full lg:w-1/2 h-[300px] lg:h-full">
+          <Image
+            src="/picture/image 8.png"
+            alt="Background"
+            layout="fill"
+            objectFit="cover"
+            className="opacity-40 z-5"
+          />
+          <div className="absolute inset-0 bg-black bg-opacity-20" />
           <div className="absolute bottom-8 left-0 right-0 px-6 lg:px-12 z-10">
-            <p className="text-white text-lg lg:text-2xl font-semibold italic capitalize leading-relaxed">
+            <p className="z-99 text-white text-lg lg:text-2xl font-semibold italic capitalize leading-relaxed">
               🌿 "Clean Earth, Bright Future." Join the mission. Make every login count.
             </p>
           </div>
         </div>
 
-        {/* Right side - Form */}
-        <div className="w-full lg:w-1/2 bg-white p-6 lg:p-14">
+        {/* Right side - Login Form */}
+        <div className="w-full lg:w-1/2 bg-white p-6 lg:p-14 overflow-y-auto">
           <div className="max-w-[527px] mx-auto">
             <h1 className="text-2xl lg:text-3xl text-[#A0C878] font-bold capitalize mb-6">
               Welcome Back, Earth Guardian!
@@ -120,7 +122,11 @@ const Login: React.FC = () => {
               {showMessage && (
                 <div
                   className={`w-full py-2 px-4 rounded-md shadow transition-all duration-300
-                  ${error ? "bg-red-100 text-red-700 border border-red-400" : "bg-green-100 text-green-700 border border-green-400"}`}
+                    ${
+                      error
+                        ? "bg-red-100 text-red-700 border border-red-400"
+                        : "bg-green-100 text-green-700 border border-green-400"
+                    }`}
                 >
                   {error || success}
                 </div>
@@ -147,6 +153,8 @@ const Login: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Gift, Home, User, Trash2, Menu, X } from "lucide-react"
+import Image from "next/image"
 
 const DisposalsHistory = () => {
   const router = useRouter()
@@ -36,7 +37,7 @@ const DisposalsHistory = () => {
   }
 
   return (
-    <div className="flex h-screen w-full max-w-[1440px] mx-auto bg-[#221E1E] font-[Inter] text-white">
+    <div className="flex h-screen w-full max-w-screen mx-auto bg-[#221E1E] font-[Inter] text-white">
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
@@ -50,21 +51,14 @@ const DisposalsHistory = () => {
       >
         <div>
           <div className="p-6 flex items-center gap-2 border-b border-gray-800">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#8BC34A"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-leaf"
-            >
-              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-            </svg>
+            <Image
+                            src= "/icons/icon-512x512.png"
+                            alt="BountyHunter Logo"
+                            width={32}
+                            height={32}
+                            priority
+                            className="rounded-full drop-shadow-lg shadow-[#a4d273]"  
+                          />  
             <span className="font-bold text-xl">BountyHunter</span>
             <button className="ml-auto lg:hidden" onClick={toggleSidebar}>
               <X className="w-6 h-6" />
@@ -102,7 +96,7 @@ const DisposalsHistory = () => {
                     setSidebarOpen(false)
                   }}
                     >
-                  <Gift className="w-5 h-5" /> Riwayat Pembuangan        
+                  <Trash2 className="w-5 h-5" /> Riwayat Pembuangan        
                 </div>
               </li>
             </ul>

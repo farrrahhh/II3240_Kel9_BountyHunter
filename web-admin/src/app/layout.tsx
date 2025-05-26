@@ -11,6 +11,16 @@ const poppins = Poppins({
 export const metadata = {
   title: "Admin Login - Dashboard",
   description: "Admin login portal",
+  icons: [
+    {
+      rel: "icon",
+      url: "icons/icon-512x512.png",
+    },
+    {
+      rel: "apple-touch-icon",
+      url: "icons/icon-512x512.png",
+    },
+  ]
 }
 
 export default function RootLayout({

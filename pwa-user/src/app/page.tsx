@@ -1,45 +1,14 @@
 import { Gift, Globe, Rocket } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 
 export default function BountyHunterLanding() {
   return (
     <div className="flex flex-col min-h-screen bg-[#1a1a1a] text-white">
       {/* Navigation */}
-      <header className="flex items-center justify-between p-4 md:px-10 lg:px-20">
-        <div className="flex items-center gap-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#8BC34A"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="lucide lucide-leaf"
-          >
-            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-          </svg>
-          <span className="font-bold text-lg">BountyHunter</span>
-        </div>
-        <nav className="hidden md:flex items-center gap-8">
-          {/* <Link href="#" className="text-[#8BC34A] hover:text-[#a4d967]">
-            Home
-          </Link>
-          <Link href="#" className="text-white hover:text-[#a4d967]">
-            Rewards
-          </Link> */}
-        </nav>
-        <Link href="/login">
-        <button className="bg-[#8BC34A] hover:bg-[#6fa536] text-white font-bold px-4 py-2 rounded-md transition-colors">
-            Log In
-        </button>
-        </Link>
-      </header>
-
+      <Header />
       {/* Hero Section */}
       <section className="relative py-16 md:py-24">
         <div className="absolute inset-0 z-0">
@@ -243,29 +212,7 @@ export default function BountyHunterLanding() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#111111] py-8 mt-auto">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-center md:justify-between">
-          <div className="flex items-center gap-2 mb-4 md:mb-0">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#8BC34A"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-leaf"
-            >
-              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-            </svg>
-            <span className="font-bold">BountyHunter</span>
-          </div>
-          <div className="text-sm text-gray-400">©2025 H3240-K3-Kel9</div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

@@ -96,7 +96,7 @@ const UserPage = () => {
   }
 
   return (
-    <div className="flex h-screen w-full max-w-[1440px] mx-auto bg-[#221E1E] font-[Inter] text-white">
+    <div className="flex h-screen w-full max-w-screen mx-auto bg-[#221E1E] font-[Inter] text-white">
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />

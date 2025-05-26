@@ -38,11 +38,12 @@ export function Sidebar() {
       <div>
         <div className="flex items-center gap-2 p-6">
           <Image
-            src="/logo.png"
+            src= "/icons/icon-512x512.png"
             alt="BountyHunter Logo"
             width={32}
             height={32}
             priority
+            className="rounded-full drop-shadow-lg shadow-[#a4d273] hover:scale-105 transition-transform duration-300 ease-in-out"  
           />
           <span className="text-xl font-bold">BountyHunter</span>
         </div>
