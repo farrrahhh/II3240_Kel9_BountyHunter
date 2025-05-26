@@ -178,13 +178,13 @@ const RewardsPage = () => {
             />
             <div
               className="absolute inset-0"
-              style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.4))", zIndex: 1 }}
+              style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.4))", zIndex: 1 }}
             />
           </div>
           
           <div className="relative z-10">
-            <h1 className="text-2xl sm:text-3xl font-bold text-black">Turn Trash Into Treasure!</h1>
-            <p className="mt-2 font-bold text-xs sm:text-sm max-w-xl text-black">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Turn Trash Into Treasure!</h1>
+            <p className="mt-2 font-bold text-xs sm:text-sm max-w-xl text-white">
               Earn Reward Points By Recycling At Smart Bins And Redeem Them For Exciting Discounts, Vouchers, And
               Exclusive Deals!
             </p>

@@ -84,8 +84,8 @@ const DisposalsHistory = () => {
                 </div>
               </li>
               <li>
-                <div
-                  className="flex items-center gap-3 hover:text-[#8BC34A] cursor-pointer transition-colors"
+              <div
+                  className="flex items-center gap-3 cursor-pointer hover:text-[#8BC34A] transition-colors"
                   onClick={() => {
                     router.push("/rewards")
                     setSidebarOpen(false)
@@ -95,8 +95,14 @@ const DisposalsHistory = () => {
                 </div>
               </li>
               <li>
-                <div className="flex items-center gap-3 text-[#8BC34A] font-semibold cursor-pointer">
-                  <Trash2 className="w-5 h-5" /> Riwayat Pembuangan
+                   <div
+                  className="flex items-center gap-3 cursor-pointer hover:text-[#8BC34A] transition-colors"
+                  onClick={() => {
+                    router.push("/disposals_history")
+                    setSidebarOpen(false)
+                  }}
+                    >
+                  <Gift className="w-5 h-5" /> Riwayat Pembuangan        
                 </div>
               </li>
             </ul>

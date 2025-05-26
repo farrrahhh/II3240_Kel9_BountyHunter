@@ -1,4 +1,4 @@
-"use client"
+  "use client"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -9,24 +9,37 @@ const Dashboard = () => {
   const [adminEmail, setAdminEmail] = useState("")
   const [points, setPoints] = useState<number | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [totalBottles, setTotalBottles] = useState<number | null>(null)
 
   useEffect(() => {
-    const storedAdmin = localStorage.getItem("admin") || localStorage.getItem("user")
-    if (!storedAdmin) {
-      router.push("/login")
-    } else {
-      const parsed = JSON.parse(storedAdmin)
-      setAdminEmail(parsed.email)
+  const storedAdmin = localStorage.getItem("admin") || localStorage.getItem("user")
+  if (!storedAdmin) {
+    router.push("/login")
+  } else {
+    const parsed = JSON.parse(storedAdmin)
+    setAdminEmail(parsed.email)
 
-      fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/users/${parsed.user_id}/points`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Gagal fetch points")
-          return res.json()
-        })
-        .then((data) => setPoints(data.points))
-        .catch((err) => console.error("Gagal mengambil poin:", err))
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/users/${parsed.user_id}/points`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Gagal fetch points")
+        return res.json()
+      })
+      .then((data) => setPoints(data.points))
+      .catch((err) => console.error("Gagal mengambil poin:", err))
+
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/users/${parsed.user_id}/disposals`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Gagal fetch disposals")
+        return res.json()
+      })
+      .then((data) => {
+        const total = data.reduce((acc: number, item: any) => acc + item.bottle_count, 0)
+        setTotalBottles(total)
+      })
+      .catch((err) => console.error("Gagal mengambil botol:", err))
     }
   }, [router])
+
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen)
@@ -96,8 +109,7 @@ const Dashboard = () => {
                     setSidebarOpen(false)
                   }}
                 >
-                  <Trash2 className="w-5 h-5" /> Riwayat Pembuangan
-                </div>
+                <Gift className="w-5 h-5" /> Riwayat Pembuangan                </div>
               </li>
             </ul>
           </nav>
@@ -136,8 +148,10 @@ const Dashboard = () => {
           style={{ backgroundImage: "url(/picture/bottle.png)" }}
         >
           <div className="bg-black bg-opacity-60 p-4 md:p-6 rounded text-center w-[90%] max-w-md">
-            <div className="text-3xl md:text-4xl font-bold text-[#8BC34A]">520</div>
-            <p className="text-sm text-white">kg bottles</p>
+          <div className="text-3xl md:text-4xl font-bold text-[#8BC34A]">
+            {totalBottles ?? "..."}
+          </div>
+          <p className="text-sm text-white">botol dibuang</p>
             <div className="text-3xl md:text-4xl font-bold text-[#8BC34A] mt-4">{points ?? "..."}</div>
             <p className="text-sm text-white">points</p>
             <h3 className="mt-4 font-bold text-[#8BC34A]">Scan. Drop. Earn. Repeat</h3>
